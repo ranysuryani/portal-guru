@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="id">
+<head> <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Digital Guru - Media Pembelajaran & Administrasi</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #1e40af;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 2.5rem 1rem;
+            text-align: center;
+        }
+        header h1 { margin: 0; font-size: 2rem; }
+        header p { margin: 0.5rem 0 0; opacity: 0.9; }
+        
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .section-title {
+            border-left: 5px solid var(--primary);
+            padding-left: 12px;
+            margin-top: 2.5rem;
+            color: var(--secondary);
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+        .card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .card:hover { transform: translateY(-5px); }
+        .card h3 { margin-top: 0; color: var(--primary); }
+        .badge {
+            display: inline-block;
+            background: #dbeafe;
+            color: var(--secondary);
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            width: fit-content;
+        }
+        .btn {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: bold;
+            margin-top: 1rem;
+        }
+        .btn:hover { background: var(--secondary); }
+        footer {
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Portal Digital Guru Inovatif</h1>
+    <p>Pusat Media Pembelajaran Interaktif & Aplikasi Administrasi Kinerja</p>
+</header>
+
+<div class="container">
+    <!-- Bagian 1: Media Pembelajaran -->
+    <h2 class="section-title">📚 Media Pembelajaran & Game Edukasi</h2>
+    <div class="grid">
+        <div class="card">
+            <div>
+                <span class="badge">Game Edukasi</span>
+                <h3>Kuis Petualangan Sains</h3>
+                <p>Game interaktif berbasis web untuk evaluasi pemahaman siswa di kelas secara menyenangkan.</p>
+            </div>
+            <a href="pembelajaran/game-ipa.html" class="btn">Buka Aplikasi →</a>
+        </div>
+
+        <div class="card">
+            <div>
+                <span class="badge">LKPD Digital</span>
+                <h3>LKPD Interaktif & Simulasi</h3>
+                <p>Lembar Kerja Peserta Didik digital lengkap dengan panduan praktikum dan evaluasi mandiri.</p>
+            </div>
+            <a href="pembelajaran/lkpd-digital.html" class="btn">Buka LKPD →</a>
+        </div>
+    </div>
+
+    <!-- Bagian 2: Aplikasi Administrasi Guru -->
+    <h2 class="section-title">⚙️ Aplikasi Administrasi & Kinerja Guru</h2>
+    <div class="grid">
+        <div class="card">
+            <div>
+                <span class="badge">Penilaian</span>
+                <h3>Aplikasi Olah Nilai & KKTP</h3>
+                <p>Kalkulator otomatis pengolahan nilai formatif, sumatif, dan rekap ketuntasan belajar siswa.</p>
+            </div>
+            <a href="administrasi/olah-nilai.html" class="btn">Jalankan Aplikasi →</a>
+        </div>
+
+        <div class="card">
+            <div>
+                <span class="badge">Kinerja Harian</span>
+                <h3>Jurnal & Laporan Kinerja Harian</h3>
+                <p>Pencatatan agenda mengajar harian dan ekspor otomatis ke format laporan bulanan siap cetak.</p>
+            </div>
+            <a href="administrasi/laporan-kinerja.html" class="btn">Isi Laporan →</a>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>© 2026 Portal Digital Guru | Dibangun dengan Teknologi Web & AI</p>
+</footer>
+
+</body>
+</html>
