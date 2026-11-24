@@ -1,0 +1,1575 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petualangan Sistem Pencernaan - Game Edukasi IPA</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Fredoka & Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tone.js untuk Efek Suara Sintetis -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #064e3b 100%);
+            min-height: 100vh;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+        h1, h2, h3, .font-game {
+            font-family: 'Fredoka', sans-serif;
+        }
+        /* Custom Button Styling */
+        .btn-game {
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 4px 0 rgba(0,0,0,0.3);
+        }
+        .btn-game:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 0px 0 rgba(0,0,0,0.3);
+        }
+        /* Animasi Getar saat salah */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+        .animate-shake {
+            animation: shake 0.4s ease-in-out;
+        }
+        /* Canvas Mini Game */
+        #batCanvas {
+            background: radial-gradient(circle at center, #1e1b4b 0%, #090d16 100%);
+            cursor: crosshair;
+            touch-action: none;
+        }
+    </style>
+</head>
+<body class="flex flex-col justify-between min-h-screen select-none">
+
+    <!-- HEADER STATUS BAR (Tersembunyi di Layar Awal) -->
+    <header id="gameHeader" class="hidden sticky top-0 z-30 bg-slate-900/90 backdrop-blur-md border-b border-emerald-500/30 px-4 py-3 shadow-lg">
+        <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-2 text-sm sm:text-base">
+            <!-- Identitas & Level -->
+            <div class="flex items-center gap-3">
+                <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-3 py-1 rounded-full font-game font-semibold">
+                    Level <span id="hdrLevel">1</span>/5
+                </span>
+                <span class="hidden sm:inline text-slate-300 font-medium truncate max-w-[150px]" id="hdrPlayerName">Siswa</span>
+            </div>
+
+            <!-- Nyawa (Hearts) -->
+            <div class="flex items-center gap-1 bg-slate-800 px-3 py-1 rounded-full border border-slate-700" id="hdrLives" title="Nyawa Tersisa">
+                <!-- Diisi oleh JS -->
+            </div>
+
+            <!-- Skor & Waktu Global -->
+            <div class="flex items-center gap-3">
+                <div class="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-3 py-1 rounded-full font-game font-bold">
+                    ⭐ <span id="hdrScore">0</span> Poin
+                </div>
+                <div class="bg-sky-500/20 text-sky-300 border border-sky-500/40 px-3 py-1 rounded-full font-mono font-bold" title="Sisa Waktu Total (40 Menit)">
+                    ⏱️ <span id="hdrGlobalTimer">40:00</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- KONTEN UTAMA -->
+    <main class="flex-grow flex items-center justify-center p-4">
+        
+        <!-- LAYAR 1: PEMBUKA, ORIENTASI PEMBELAJARAN MENDALAM & IDENTITAS -->
+        <section id="screenStart" class="w-full max-w-3xl bg-slate-800/90 backdrop-blur-md border border-slate-700 rounded-3xl p-6 sm:p-8 shadow-2xl">
+            <div class="text-center mb-6">
+                <div class="inline-block bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold mb-3">
+                    IPA SMP/MTs • Sistem Pencernaan Manusia
+                </div>
+                <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-amber-300 mb-3">
+                    Petualangan Sistem Pencernaan
+                </h1>
+                <p class="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto">
+                    Jelajahi perjalanan makanan di dalam tubuh manusia melalui 5 level tantangan! Kumpulkan poin sebanyak-banyaknya dan raih bonus dari misi memanah kelelawar.
+                </p>
+            </div>
+
+            <!-- Kartu Pembelajaran Mendalam & Panca Cinta -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 text-left">
+                <div class="bg-slate-900/70 border border-slate-700/80 rounded-2xl p-4">
+                    <h3 class="text-emerald-400 font-bold text-base mb-1 flex items-center gap-2">
+                        <span>🧠</span> Tujuan & Pertanyaan Pemantik
+                    </h3>
+                    <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                        <strong>Tujuan:</strong> Menganalisis organ, enzim, proses pencernaan mekanis-kimiawi, serta gangguan sistem pencernaan.<br>
+                        <em class="text-amber-300 block mt-1">"Pernahkah kamu berpikir bagaimana sepiring nasi dan lauk berubah menjadi energi untuk berlari dan berpikir?"</em>
+                    </p>
+                </div>
+                <div class="bg-slate-900/70 border border-slate-700/80 rounded-2xl p-4">
+                    <h3 class="text-rose-400 font-bold text-base mb-1 flex items-center gap-2">
+                        <span>❤️</span> Integrasi Panca Cinta (KBC)
+                    </h3>
+                    <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                        <strong>Cinta Diri & Sesama Manusia:</strong> Memahami keajaiban sistem pencernaan menumbuhkan kesadaran untuk mensyukuri nikmat sehat dengan menjaga pola makan bergizi dan higienis.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Aturan Permainan Ringkas -->
+            <div class="bg-indigo-950/50 border border-indigo-500/30 rounded-2xl p-4 mb-6">
+                <h3 class="font-game text-indigo-300 text-base mb-2">📜 Aturan Misi:</h3>
+                <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm text-slate-200">
+                    <li class="flex items-center gap-2">🎯 <span><strong>5 Level</strong> (10 soal per level = 50 soal)</span></li>
+                    <li class="flex items-center gap-2">❤️ <span><strong>5 Nyawa</strong> untuk seluruh permainan</span></li>
+                    <li class="flex items-center gap-2">⭐ <span>Poin: Lv1 (10), Lv2 (20), Lv3 (30), Lv4 (40), Lv5 (50)</span></li>
+                    <li class="flex items-center gap-2">⏳ <span>Salah jawab = <strong>Jeda 10 detik</strong> & -1 nyawa</span></li>
+                    <li class="flex items-center gap-2">🦇 <span>Jeda antarlevel = <strong>Memanah Kelelawar (1 menit)</strong></span></li>
+                    <li class="flex items-center gap-2">⏱️ <span>Durasi total permainan: <strong>40 Menit</strong></span></li>
+                </ul>
+            </div>
+
+            <!-- Form Identitas Siswa & Guru (Dapat Disesuaikan) -->
+            <div class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Siswa / Pemain *</label>
+                        <input type="text" id="inputStudentName" placeholder="Masukkan nama lengkapmu..." class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-600 text-white focus:outline-none focus:border-emerald-400 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Kelas / Kelompok</label>
+                        <input type="text" id="inputStudentClass" placeholder="Contoh: VIII-A" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-600 text-white focus:outline-none focus:border-emerald-400 text-sm">
+                    </div>
+                </div>
+
+                <!-- Pengaturan Identitas Guru (Opsional / Collapsible) -->
+                <details class="bg-slate-900/50 border border-slate-700 rounded-xl p-3 text-xs text-slate-300">
+                    <summary class="cursor-pointer font-semibold text-slate-200 hover:text-emerald-400">⚙️ Sesuaikan Identitas Guru & Instansi (Opsional)</summary>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
+                        <input type="text" id="inputTeacherName" placeholder="Nama Guru Pembuat" class="px-3 py-2 rounded-lg bg-slate-800 border border-slate-600 text-white">
+                        <input type="text" id="inputSchoolName" placeholder="Nama Sekolah/Madrasah" class="px-3 py-2 rounded-lg bg-slate-800 border border-slate-600 text-white">
+                        <input type="text" id="inputYear" value="2026" placeholder="Tahun" class="px-3 py-2 rounded-lg bg-slate-800 border border-slate-600 text-white">
+                    </div>
+                </details>
+
+                <div id="startErrorMsg" class="hidden text-rose-400 text-xs font-semibold text-center bg-rose-950/60 py-2 rounded-lg border border-rose-500/40">
+                    Silakan masukkan nama pemain terlebih dahulu sebelum memulai!
+                </div>
+
+                <button id="btnStartGame" class="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-game font-bold text-lg sm:text-xl btn-game cursor-pointer">
+                    🚀 MULAI PETUALANGAN SEKARANG
+                </button>
+            </div>
+        </section>
+
+        <!-- LAYAR 2: KUIS UTAMA (5 LEVEL x 10 SOAL) -->
+        <section id="screenQuiz" class="hidden w-full max-w-3xl bg-slate-800/95 backdrop-blur-md border border-slate-700 rounded-3xl p-6 sm:p-8 shadow-2xl relative">
+            <!-- Info Topik Level & Nomor Soal -->
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b border-slate-700">
+                <div>
+                    <span class="text-xs uppercase tracking-wider text-emerald-400 font-bold" id="quizLevelTheme">Level 1: Rongga Mulut & Kerongkongan</span>
+                    <h2 class="text-lg sm:text-xl font-bold text-white">Soal <span id="quizQuestionNum">1</span> dari 10</h2>
+                </div>
+                <div class="bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-xl text-amber-300 text-xs sm:text-sm font-bold">
+                    Nilai Soal: +<span id="quizPointValue">10</span> Poin
+                </div>
+            </div>
+
+            <!-- Progress Bar Level -->
+            <div class="w-full bg-slate-900 h-2.5 rounded-full mb-6 overflow-hidden">
+                <div id="quizProgressBar" class="bg-gradient-to-r from-emerald-400 to-teal-400 h-full transition-all duration-300" style="width: 10%"></div>
+            </div>
+
+            <!-- Pertanyaan -->
+            <div class="bg-slate-900/80 border border-slate-700/80 rounded-2xl p-5 mb-6">
+                <p id="quizQuestionText" class="text-base sm:text-lg text-slate-100 font-medium leading-relaxed">
+                    Memuat pertanyaan...
+                </p>
+            </div>
+
+            <!-- Pilihan Jawaban (A, B, C, D) -->
+            <div id="quizOptionsContainer" class="grid grid-cols-1 gap-3 mb-6">
+                <!-- Diisi dinamis oleh JS -->
+            </div>
+
+            <!-- Panel Umpan Balik Edukatif (Setelah Menjawab) -->
+            <div id="quizFeedbackBox" class="hidden rounded-2xl p-4 mb-4 border">
+                <div class="flex items-start gap-3">
+                    <span id="feedbackIcon" class="text-2xl">💡</span>
+                    <div class="flex-1">
+                        <h4 id="feedbackTitle" class="font-bold text-base mb-1">Judul Umpan Balik</h4>
+                        <p id="feedbackExplanation" class="text-xs sm:text-sm leading-relaxed text-slate-200"></p>
+                    </div>
+                </div>
+                <div class="mt-4 flex justify-end">
+                    <button id="btnNextQuestion" class="px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-game font-bold text-sm sm:text-base btn-game cursor-pointer">
+                        Lanjut Soal Berikutnya ➡️
+                    </button>
+                </div>
+            </div>
+
+            <!-- OVERLAY PENALTI JEDA 10 DETIK (JIKA JAWABAN SALAH) -->
+            <div id="penaltyOverlay" class="hidden absolute inset-0 z-20 bg-slate-950/95 backdrop-blur-md rounded-3xl flex flex-col items-center justify-center p-6 text-center">
+                <div class="text-5xl mb-3 animate-bounce">⚠️</div>
+                <h3 class="text-2xl sm:text-3xl font-game font-bold text-rose-400 mb-2">Jawaban Kurang Tepat!</h3>
+                <p class="text-slate-300 text-sm sm:text-base max-w-md mb-4">
+                    Nyawa berkurang 1. Baca penjelasan di bawah ini selama waktu jeda sebelum melanjutkan:
+                </p>
+                <div class="bg-rose-950/50 border border-rose-500/40 rounded-2xl p-4 max-w-lg mb-6 text-left">
+                    <p class="text-xs text-rose-300 font-bold uppercase mb-1">Pembahasan Konsep:</p>
+                    <p id="penaltyExplanationText" class="text-sm text-slate-100 leading-relaxed"></p>
+                </div>
+                <div class="bg-slate-900 border-2 border-rose-500 w-24 h-24 rounded-full flex flex-col items-center justify-center shadow-lg shadow-rose-500/20">
+                    <span id="penaltyCountdown" class="text-3xl font-mono font-bold text-rose-400">10</span>
+                    <span class="text-[10px] uppercase tracking-wider text-slate-400">Detik</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- LAYAR 3: MINI-GAME JEDA ANTARLEVEL (MEMANAH KELELAWAR 1 MENIT) -->
+        <section id="screenMiniGame" class="hidden w-full max-w-4xl bg-slate-800/95 border border-indigo-500/40 rounded-3xl p-4 sm:p-6 shadow-2xl">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <div>
+                    <span class="bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full text-xs font-bold">
+                        🎯 Jeda Antarlevel • Bonus Poin!
+                    </span>
+                    <h2 class="text-xl sm:text-2xl font-game font-bold text-white mt-1">
+                        Misi Memanah Kelelawar Bakteri!
+                    </h2>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="bg-amber-500/20 border border-amber-500/40 px-3 py-1.5 rounded-xl text-amber-300 font-game font-bold text-sm sm:text-base">
+                        Bonus: +<span id="miniGameScore">0</span> Poin
+                    </div>
+                    <div class="bg-rose-500/20 border border-rose-500/40 px-3 py-1.5 rounded-xl text-rose-300 font-mono font-bold text-sm sm:text-base">
+                        ⏳ <span id="miniGameTimer">01:00</span>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-xs sm:text-sm text-slate-300 mb-3">
+                Klik atau sentuh layar untuk membidik dan menembakkan panah ke arah kelelawar pembawa bakteri! Setiap kelelawar yang terkena panah memberikan <strong>+5 Poin Bonus</strong>.
+            </p>
+
+            <!-- Area Canvas Interaktif -->
+            <div class="relative w-full h-[320px] sm:h-[400px] rounded-2xl overflow-hidden border-2 border-indigo-500/50 shadow-inner">
+                <canvas id="batCanvas" class="w-full h-full block"></canvas>
+                
+                <!-- Overlay Selesai Mini Game -->
+                <div id="miniGameEndOverlay" class="hidden absolute inset-0 bg-slate-950/85 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
+                    <div class="text-5xl mb-2">🏹</div>
+                    <h3 class="text-2xl sm:text-3xl font-game font-bold text-emerald-400 mb-2">Waktu Jeda Selesai!</h3>
+                    <p class="text-slate-200 text-base mb-4">
+                        Kamu berhasil mengumpulkan <strong class="text-amber-300">+<span id="miniGameFinalBonus">0</span> Poin Bonus</strong>!
+                    </p>
+                    <button id="btnProceedNextLevel" class="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-game font-bold text-base sm:text-lg btn-game cursor-pointer">
+                        Lanjut ke Level <span id="nextLevelNumDisplay">2</span> ➡️
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- LAYAR 4: HASIL AKHIR, REFLEKSI & PAPAN SKOR (LEADERBOARD SESI) -->
+        <section id="screenEnd" class="hidden w-full max-w-3xl bg-slate-800/95 border border-slate-700 rounded-3xl p-6 sm:p-8 shadow-2xl text-center">
+            <div id="endBadgeIcon" class="text-6xl mb-3">🏆</div>
+            <h2 id="endTitle" class="text-3xl sm:text-4xl font-game font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-emerald-400 mb-2">
+                Petualangan Selesai!
+            </h2>
+            <p id="endSubtitle" class="text-slate-300 text-sm sm:text-base mb-6">
+                Luar biasa! Kamu telah menyelesaikan seluruh tantangan sistem pencernaan.
+            </p>
+
+            <!-- Ringkasan Statistik Pemain -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+                <div class="bg-slate-900/90 border border-slate-700 p-3 rounded-2xl">
+                    <span class="text-xs text-slate-400 block">Total Poin</span>
+                    <span id="endTotalScore" class="text-2xl font-game font-bold text-amber-400">0</span>
+                </div>
+                <div class="bg-slate-900/90 border border-slate-700 p-3 rounded-2xl">
+                    <span class="text-xs text-slate-400 block">Level Tercapai</span>
+                    <span id="endLevelReached" class="text-2xl font-game font-bold text-emerald-400">5/5</span>
+                </div>
+                <div class="bg-slate-900/90 border border-slate-700 p-3 rounded-2xl">
+                    <span class="text-xs text-slate-400 block">Jawaban Benar</span>
+                    <span id="endCorrectCount" class="text-2xl font-game font-bold text-sky-400">0/50</span>
+                </div>
+                <div class="bg-slate-900/90 border border-slate-700 p-3 rounded-2xl">
+                    <span class="text-xs text-slate-400 block">Sisa Nyawa</span>
+                    <span id="endLivesLeft" class="text-2xl font-game font-bold text-rose-400">5</span>
+                </div>
+            </div>
+
+            <!-- Refleksi Pembelajaran Mendalam & Aksi Nyata Panca Cinta -->
+            <div class="bg-emerald-950/40 border border-emerald-500/30 rounded-2xl p-4 sm:p-5 mb-6 text-left">
+                <h3 class="font-game text-emerald-300 text-base sm:text-lg mb-2 flex items-center gap-2">
+                    <span>🌱</span> Refleksi & Aksi Nyata (Cinta Diri & Sesama)
+                </h3>
+                <p class="text-xs sm:text-sm text-slate-200 leading-relaxed mb-3">
+                    Setiap organ pencernaan bekerja sama dengan harmonis untuk mengubah makanan menjadi energi. Sebagai wujud rasa syukur dan cinta pada diri sendiri, komitmen sehat apa yang akan kamu lakukan mulai hari ini?
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    <label class="flex items-center gap-2 bg-slate-900/70 p-2.5 rounded-xl border border-slate-700 cursor-pointer hover:border-emerald-400">
+                        <input type="checkbox" class="accent-emerald-500 w-4 h-4">
+                        <span>Mengunyah makanan dengan baik & tidak terburu-buru</span>
+                    </label>
+                    <label class="flex items-center gap-2 bg-slate-900/70 p-2.5 rounded-xl border border-slate-700 cursor-pointer hover:border-emerald-400">
+                        <input type="checkbox" class="accent-emerald-500 w-4 h-4">
+                        <span>Memperbanyak minum air putih & makan serat (sayur/buah)</span>
+                    </label>
+                    <label class="flex items-center gap-2 bg-slate-900/70 p-2.5 rounded-xl border border-slate-700 cursor-pointer hover:border-emerald-400">
+                        <input type="checkbox" class="accent-emerald-500 w-4 h-4">
+                        <span>Mencuci tangan sebelum makan untuk mencegah infeksi bakteri</span>
+                    </label>
+                    <label class="flex items-center gap-2 bg-slate-900/70 p-2.5 rounded-xl border border-slate-700 cursor-pointer hover:border-emerald-400">
+                        <input type="checkbox" class="accent-emerald-500 w-4 h-4">
+                        <span>Makan teratur agar terhindar dari sakit maag (gastritis)</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Papan Peringkat Sesi Kelas (Untuk Kompetisi Siswa) -->
+            <div class="bg-slate-900/80 border border-slate-700 rounded-2xl p-4 mb-6 text-left">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="font-game text-amber-300 text-base">🏅 Papan Skor Sesi Ini (Pemenang Poin Terbanyak)</h3>
+                    <span class="text-[11px] text-slate-400">Gantian bermain di perangkat ini untuk membandingkan skor!</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs sm:text-sm text-left">
+                        <thead class="text-slate-400 border-b border-slate-700">
+                            <tr>
+                                <th class="py-2 px-2">Peringkat</th>
+                                <th class="py-2 px-2">Nama Siswa</th>
+                                <th class="py-2 px-2">Kelas</th>
+                                <th class="py-2 px-2">Level</th>
+                                <th class="py-2 px-2 text-right">Total Poin</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboardBody" class="divide-y divide-slate-800">
+                            <!-- Diisi dinamis -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tombol Main Lagi -->
+            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                <button id="btnPlayAgain" class="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-game font-bold text-base btn-game cursor-pointer">
+                    🔄 Mainkan Lagi (Siswa Berikutnya)
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER KREDIT PENGEMBANG -->
+    <footer class="bg-slate-950/80 border-t border-slate-800 py-3 px-4 text-center text-xs text-slate-400">
+        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1">
+            <div>
+                Dikembangkan oleh: <strong class="text-slate-200">Mila Karmila, S. Pd., M. Pd., Gr.</strong> • Duta GEMA AI Kemenag RI
+            </div>
+            <div id="footerTeacherCredit" class="text-emerald-400/90 font-medium">
+                Media Pembelajaran Interaktif IPA
+            </div>
+        </div>
+    </footer>
+
+    <!-- LOGIKA GAME EDUKASI & SIMULASI MINI-GAME -->
+    <script>
+        /**
+         * BANK SOAL SISTEM PENCERNAAN (5 LEVEL x 10 SOAL = 50 SOAL)
+         * Tingkat kesulitan bertahap dari Level 1 (Dasar/Mulut-Kerongkongan) hingga Level 5 (Analisis & Gangguan)
+         */
+        const QUESTION_BANK = [
+            // ================= LEVEL 1: NUTRISI & RONGGA MULUT (10 SOAL @ 10 POIN) =================
+            {
+                level: 1,
+                theme: "Level 1: Nutrisi Makanan & Rongga Mulut",
+                q: "Zat makanan yang berfungsi sebagai sumber energi utama bagi tubuh manusia adalah...",
+                options: ["Karbohidrat", "Vitamin", "Mineral", "Air"],
+                answer: 0,
+                explanation: "Karbohidrat adalah sumber energi utama tubuh (1 gram menghasilkan ±4 kkal) yang dipecah menjadi glukosa."
+            },
+            {
+                level: 1,
+                theme: "Level 1: Nutrisi Makanan & Rongga Mulut",
+                q: "Pencernaan mekanis di dalam rongga mulut dibantu oleh organ...",
+                options: ["Gigi dan lidah", "Kelenjar ludah dan faring", "Epiglotis dan kerongkongan", "Amandel dan langit-langit"],
+                answer: 0,
+                explanation: "Gigi memotong serta menghaluskan makanan secara mekanis, sedangkan lidah membantu mengatur letak makanan dan menelan."
+            },
+            {
+                level: 1,
+                theme: "Level 1: Nutrisi Makanan & Rongga Mulut",
+                q: "Enzim ptialin (amilase) yang terdapat pada air ludah berfungsi untuk mengubah...",
+                options: ["Amilum menjadi maltosa", "Protein menjadi pepton", "Lemak menjadi asam lemak", "Maltosa menjadi glukosa"],
+                answer: 0,
+                explanation: "Enzim ptialin memulai pencernaan kimiawi di mulut dengan memecah karbohidrat kompleks (amilum) menjadi gula sederhana (maltosa)."
+            },
+            {
+                level: 1,
+                theme: "Level 1: Nutrisi Makanan & Rongga Mulut",
+                q: "Jenis gigi yang berfungsi untuk merobek makanan adalah...",
+                options: ["Gigi taring", "Gigi seri", "Gigi geraham depan", "Gigi geraham belakang"],
+                answer: 0,
+                explanation: "Gigi seri memotong makanan, gigi taring merobek makanan, dan gigi geraham mengunyah serta menghaluskan makanan."
+            },
+            {
+                level: 1,
+                theme: "Level 1: Nutrisi Makanan & Rongga Mulut",
+                q: "Zat makanan yang berperan penting untuk membangun sel-sel tubuh yang rusak adalah...",
+                options: ["Protein", "Lemak", "Karbohidrat", "Serat"],
+                answer: 0,
+                explanation: "Protein berfungsi sebagai zat pembangun, memperbaiki jaringan sel yang rusak, dan membentuk enzim serta hormon."
+            },
+            {
+                level: 1,
+                theme: "Level 1: Nutrisi Makanan & Rongga Mulut",
+                q: "Ketika kita mengunyah nasi putih cukup lama, nasi akan terasa agak manis karena...",
+                options: ["Amilum diubah menjadi maltosa oleh enzim ptialin", "Nasi mengandung glukosa murni", "Lidah mengeluarkan zat gula", "Gigi menghancurkan serat nasi"],
+                answer: 0,
+                explanation: "Enzim ptialin di air liur memecah pati (amilum) pada nasi menjadi gula maltosa yang berasa manis."
+            },
+            {
+                level: 1,
+                theme: "Level 1: Nutrisi Makanan & Rongga Mulut",
+                q: "Vitamin yang larut dalam lemak adalah...",
+                options: ["Vitamin A, D, E, dan K", "Vitamin B dan C", "Vitamin C dan D", "Vitamin B kompleks"],
+                answer: 0,
+                explanation: "Vitamin A, D, E, dan K larut dalam lemak (disimpan di jaringan lemak/hati), sedangkan vitamin B dan C larut dalam air."
+            },
+            {
+                level: 1,
+                theme: "Level 1: Nutrisi Makanan & Rongga Mulut",
+                q: "Katup yang menutup saluran pernapasan (trakea) saat kita menelan makanan agar tidak tersedak adalah...",
+                options: ["Epiglotis", "Faring", "Laring", "Uvula"],
+                answer: 0,
+                explanation: "Epiglotis menutup pangkal tenggorokan saat menelan sehingga bolus makanan masuk ke kerongkongan, bukan ke saluran napas."
+            },
+            {
+                level: 1,
+                theme: "Level 1: Nutrisi Makanan & Rongga Mulut",
+                q: "Mineral yang sangat dibutuhkan untuk pembentukan tulang dan gigi yang kuat adalah...",
+                options: ["Kalsium dan Fosfor", "Zat besi dan Yodium", "Natrium dan Kalium", "Seng dan Fluor"],
+                answer: 0,
+                explanation: "Kalsium (Ca) dan Fosfor (P) merupakan mineral utama penyusun matriks keras pada tulang dan gigi."
+            },
+            {
+                level: 1,
+                theme: "Level 1: Nutrisi Makanan & Rongga Mulut",
+                q: "Urutan saluran pencernaan manusia dari awal hingga akhir yang benar adalah...",
+                options: [
+                    "Mulut → Kerongkongan → Lambung → Usus halus → Usus besar → Anus",
+                    "Mulut → Tenggorokan → Lambung → Usus besar → Usus halus → Anus",
+                    "Mulut → Kerongkongan → Usus halus → Lambung → Usus besar → Anus",
+                    "Mulut → Faring → Lambung → Pankreas → Usus besar → Anus"
+                ],
+                answer: 0,
+                explanation: "Makanan melewati mulut, kerongkongan (esofagus), lambung, usus halus, usus besar, dan sisa pencernaan keluar melalui anus."
+            },
+
+            // ================= LEVEL 2: KERONGKONGAN & LAMBUNG (10 SOAL @ 20 POIN) =================
+            {
+                level: 2,
+                theme: "Level 2: Kerongkongan & Lambung",
+                q: "Gerakan meremas dan mendorong makanan dari kerongkongan menuju lambung disebut gerakan...",
+                options: ["Peristaltik", "Segmentasi", "Difusi", "Osmosis"],
+                answer: 0,
+                explanation: "Gerak peristaltik adalah kontraksi dan relaksasi otot polos dinding kerongkongan secara bergelombang untuk mendorong bolus ke lambung."
+            },
+            {
+                level: 2,
+                theme: "Level 2: Kerongkongan & Lambung",
+                q: "Asam klorida (HCl) yang dihasilkan oleh dinding lambung memiliki fungsi utama untuk...",
+                options: [
+                    "Membunuh kuman penyakit dan mengaktifkan pepsinogen menjadi pepsin",
+                    "Mengubah lemak menjadi emulsi lemak",
+                    "Menyerap sari-sari makanan ke pembuluh darah",
+                    "Menetralkan pH makanan yang masuk dari mulut"
+                ],
+                answer: 0,
+                explanation: "HCl menciptakan suasana asam (pH ±1,5-3) yang membunuh bakteri patogen serta mengaktifkan pepsinogen menjadi enzim pepsin."
+            },
+            {
+                level: 2,
+                theme: "Level 2: Kerongkongan & Lambung",
+                q: "Enzim pada lambung yang berfungsi mengubah protein menjadi pepton adalah...",
+                options: ["Pepsin", "Renin", "Lipase", "Tripsin"],
+                answer: 0,
+                explanation: "Enzim pepsin memecah molekul protein kompleks menjadi rantai polipeptida yang lebih pendek (pepton)."
+            },
+            {
+                level: 2,
+                theme: "Level 2: Kerongkongan & Lambung",
+                q: "Enzim renin yang dihasilkan oleh lambung (terutama pada bayi) berfungsi untuk...",
+                options: [
+                    "Mengendapkan protein susu (kasein)",
+                    "Mengubah zat tepung menjadi gula",
+                    "Memecah lemak susu menjadi gliserol",
+                    "Membunuh bakteri pada ASI"
+                ],
+                answer: 0,
+                explanation: "Enzim renin menggumpalkan protein susu (kasein) agar dapat dicerna lebih lanjut oleh enzim pepsin."
+            },
+            {
+                level: 2,
+                theme: "Level 2: Kerongkongan & Lambung",
+                q: "Bubur makanan yang telah dicerna secara mekanis dan kimiawi di dalam lambung disebut...",
+                options: ["Kim (Chyme)", "Bolus", "Feses", "Vili"],
+                answer: 0,
+                explanation: "Di mulut makanan berbentuk gumpalan (bolus), sedangkan setelah diaduk dengan getah lambung menjadi bubur asam bernama kim (chyme)."
+            },
+            {
+                level: 2,
+                theme: "Level 2: Kerongkongan & Lambung",
+                q: "Mengapa dinding lambung tidak ikut tercerna oleh asam klorida (HCl) dan enzim pepsin yang sangat kuat?",
+                options: [
+                    "Dinding lambung dilapisi lendir (mukus) pelindung yang tebal",
+                    "Lambung terbuat dari jaringan tulang rawan",
+                    "HCl hanya aktif saat ada makanan masuk",
+                    "Pepsin hanya bekerja pada jaringan tumbuhan"
+                ],
+                answer: 0,
+                explanation: "Sel-sel mukosa lambung mensekresikan lapisan lendir (mukus) kaya bikarbonat yang melindungi dinding lambung dari korosi asam."
+            },
+            {
+                level: 2,
+                theme: "Level 2: Kerongkongan & Lambung",
+                q: "Otot melingkar yang mengatur keluarnya kim sedikit demi sedikit dari lambung menuju usus dua belas jari adalah...",
+                options: ["Sfingter pilorus", "Sfingter esofagus", "Katup ileosekal", "Epiglotis"],
+                answer: 0,
+                explanation: "Sfingter pilorus membuka dan menutup secara bertahap agar usus halus memiliki cukup waktu untuk mencerna kim dari lambung."
+            },
+            {
+                level: 2,
+                theme: "Level 2: Kerongkongan & Lambung",
+                q: "Tiga bagian utama penyusun organ lambung manusia adalah...",
+                options: [
+                    "Kardiak, Fundus, dan Pilorus",
+                    "Duodenum, Jejunum, dan Ileum",
+                    "Sekum, Kolon, dan Rektum",
+                    "Faring, Laring, dan Esofagus"
+                ],
+                answer: 0,
+                explanation: "Lambung terdiri dari kardiak (bagian atas dekat kerongkongan), fundus (bagian tengah membulat), dan pilorus (bagian bawah dekat usus halus)."
+            },
+            {
+                level: 2,
+                theme: "Level 2: Kerongkongan & Lambung",
+                q: "Apakah di dalam kerongkongan (esofagus) terjadi proses pencernaan secara kimiawi?",
+                options: [
+                    "Tidak, kerongkongan hanya menyalurkan makanan dengan gerak peristaltik",
+                    "Ya, dibantu oleh enzim tripsin dan lipase",
+                    "Ya, terjadi pemecahan lemak secara sempurna",
+                    "Tidak, karena kerongkongan tidak memiliki otot"
+                ],
+                answer: 0,
+                explanation: "Kerongkongan tidak menghasilkan enzim pencernaan; fungsinya murni sebagai saluran penghubung mulut ke lambung."
+            },
+            {
+                level: 2,
+                theme: "Level 2: Kerongkongan & Lambung",
+                q: "Seseorang yang makan sambil berbaring tetap dapat memasukkan makanan ke lambung karena adanya...",
+                options: [
+                    "Gerak peristaltik otot dinding kerongkongan",
+                    "Gaya gravitasi bumi",
+                    "Tekanan udara dari paru-paru",
+                    "Daya hisap dari lambung"
+                ],
+                answer: 0,
+                explanation: "Kontraksi otot polos kerongkongan (gerak peristaltik) mampu mendorong makanan melawan arah gravitasi."
+            },
+
+            // ================= LEVEL 3: USUS HALUS & KELENJAR PENCERNAAN (10 SOAL @ 30 POIN) =================
+            {
+                level: 3,
+                theme: "Level 3: Usus Halus & Kelenjar Pencernaan",
+                q: "Tiga bagian usus halus secara berurutan dari pangkal ke ujung adalah...",
+                options: [
+                    "Duodenum → Jejunum → Ileum",
+                    "Ileum → Jejunum → Duodenum",
+                    "Jejunum → Duodenum → Ileum",
+                    "Sekum → Kolon → Rektum"
+                ],
+                answer: 0,
+                explanation: "Usus halus terdiri atas usus dua belas jari (duodenum), usus kosong (jejunum), dan usus penyerapan (ileum)."
+            },
+            {
+                level: 3,
+                theme: "Level 3: Usus Halus & Kelenjar Pencernaan",
+                q: "Cairan empedu yang dihasilkan oleh hati dan ditampung di kantung empedu berfungsi untuk...",
+                options: [
+                    "Mengemulsikan lemak agar mudah dicerna enzim lipase",
+                    "Mengubah protein menjadi asam amino",
+                    "Menyerap air dan garam mineral",
+                    "Mengubah amilum menjadi glukosa"
+                ],
+                answer: 0,
+                explanation: "Garam empedu memecah gumpalan lemak besar menjadi butiran-butiran kecil (emulsi lemak) sehingga memperluas bidang kerja enzim lipase."
+            },
+            {
+                level: 3,
+                theme: "Level 3: Usus Halus & Kelenjar Pencernaan",
+                q: "Getah pankreas yang dialirkan ke duodenum mengandung tiga enzim utama, yaitu...",
+                options: [
+                    "Amilase, Tripsin, dan Lipase",
+                    "Ptialin, Pepsin, dan Renin",
+                    "Maltase, Laktase, dan Sukrase",
+                    "Pepsin, Tripsin, dan HCl"
+                ],
+                answer: 0,
+                explanation: "Pankreas menghasilkan amilase (memecah amilum), tripsin (memecah pepton menjadi asam amino), dan lipase (memecah lemak)."
+            },
+            {
+                level: 3,
+                theme: "Level 3: Usus Halus & Kelenjar Pencernaan",
+                q: "Proses penyerapan sari-sari makanan secara maksimal terjadi di bagian usus halus yang disebut...",
+                options: ["Ileum (usus penyerapan)", "Duodenum (usus dua belas jari)", "Sekum (usus buntu)", "Rektum"],
+                answer: 0,
+                explanation: "Ileum memiliki jutaan jonjot usus (vili) dan mikrovili yang sangat memperluas permukaan penyerapan nutrisi ke dalam pembuluh darah dan getah bening."
+            },
+            {
+                level: 3,
+                theme: "Level 3: Usus Halus & Kelenjar Pencernaan",
+                q: "Struktur lipatan-lipatan kecil seperti jari pada dinding dalam usus halus yang berfungsi memperluas bidang penyerapan disebut...",
+                options: ["Vili (jonjot usus)", "Silia", "Alveolus", "Nefron"],
+                answer: 0,
+                explanation: "Vili dan mikrovili memperluas permukaan dalam usus halus hingga ratusan kali lipat sehingga penyerapan sari makanan sangat efisien."
+            },
+            {
+                level: 3,
+                theme: "Level 3: Usus Halus & Kelenjar Pencernaan",
+                q: "Hasil akhir pencernaan lemak yang siap diserap oleh pembuluh kil (lakteal/getah bening) di vili usus halus adalah...",
+                options: [
+                    "Asam lemak dan gliserol",
+                    "Asam amino dan peptida",
+                    "Glukosa dan fruktosa",
+                    "Maltosa dan galaktosa"
+                ],
+                answer: 0,
+                explanation: "Enzim lipase memecah lemak menjadi asam lemak dan gliserol yang kemudian diserap melalui pembuluh kil (lakteal)."
+            },
+            {
+                level: 3,
+                theme: "Level 3: Usus Halus & Kelenjar Pencernaan",
+                q: "Selain menghasilkan enzim, getah pankreas juga mengandung natrium bikarbonat (NaHCO3) yang berfungsi untuk...",
+                options: [
+                    "Menetralkan kim yang bersifat sangat asam dari lambung",
+                    "Membunuh bakteri yang lolos dari lambung",
+                    "Menggumpalkan protein susu",
+                    "Memadatkan sisa makanan menjadi feses"
+                ],
+                answer: 0,
+                explanation: "Enzim-enzim di usus halus bekerja optimal pada pH basa (±8), sehingga NaHCO3 menetralkan asam HCl dari lambung."
+            },
+            {
+                level: 3,
+                theme: "Level 3: Usus Halus & Kelenjar Pencernaan",
+                q: "Enzim tripsin yang dihasilkan pankreas berperan penting dalam pencernaan kimiawi dengan mengubah...",
+                options: [
+                    "Pepton menjadi asam amino",
+                    "Amilum menjadi maltosa",
+                    "Lemak menjadi asam lemak",
+                    "Sukrosa menjadi glukosa"
+                ],
+                answer: 0,
+                explanation: "Tripsin melanjutkan kerja pepsin lambung dengan memecah pepton menjadi unit terkecil protein, yaitu asam amino."
+            },
+            {
+                level: 3,
+                theme: "Level 3: Usus Halus & Kelenjar Pencernaan",
+                q: "Kelenjar pencernaan terbesar dalam tubuh manusia yang berperan dalam detoksifikasi racun dan produksi empedu adalah...",
+                options: ["Hati (Hepar)", "Pankreas", "Kelenjar parotis", "Kelenjar sublingualis"],
+                answer: 0,
+                explanation: "Hati adalah kelenjar terbesar di tubuh manusia yang memproduksi cairan empedu, menyimpan glikogen, dan menawarkan racun."
+            },
+            {
+                level: 3,
+                theme: "Level 3: Usus Halus & Kelenjar Pencernaan",
+                q: "Glukosa dan asam amino yang diserap oleh vili usus halus akan masuk ke kapiler darah dan dialirkan pertama kali menuju...",
+                options: ["Hati melalui vena porta hepatica", "Jantung melalui aorta", "Paru-paru melalui arteri pulmonalis", "Ginjal melalui arteri renalis"],
+                answer: 0,
+                explanation: "Nutrisi larut air (glukosa, asam amino, vitamin B & C) dibawa ke hati melalui vena porta hepatica untuk diatur kadarnya sebelum diedarkan ke seluruh tubuh."
+            },
+
+            // ================= LEVEL 4: USUS BESAR & INTEGRASI PROSES (10 SOAL @ 40 POIN) =================
+            {
+                level: 4,
+                theme: "Level 4: Usus Besar & Integrasi Sistem Pencernaan",
+                q: "Fungsi utama dari usus besar (kolon) dalam sistem pencernaan manusia adalah...",
+                options: [
+                    "Mengatur kadar air pada sisa makanan dan pembusukan oleh bakteri",
+                    "Mencerna protein menjadi asam amino secara kimiawi",
+                    "Menyerap glukosa dan asam lemak secara maksimal",
+                    "Menghasilkan enzim amilase dan lipase"
+                ],
+                answer: 0,
+                explanation: "Usus besar menyerap kembali kelebihan air dan mineral dari sisa makanan serta membusukkannya menjadi feses."
+            },
+            {
+                level: 4,
+                theme: "Level 4: Usus Besar & Integrasi Sistem Pencernaan",
+                q: "Bakteri simbiosis yang hidup di dalam usus besar manusia, membantu pembusukan sisa makanan, serta menghasilkan vitamin K adalah...",
+                options: ["Escherichia coli", "Lactobacillus bulgaricus", "Salmonella typhi", "Vibrio cholerae"],
+                answer: 0,
+                explanation: "Bakteri Escherichia coli bersimbiosis mutualisme di usus besar untuk membusukkan sisa makanan dan mensintesis vitamin K serta vitamin B12."
+            },
+            {
+                level: 4,
+                theme: "Level 4: Usus Besar & Integrasi Sistem Pencernaan",
+                q: "Bagian usus besar yang arahnya naik, mendatar, dan menurun secara berurutan disebut...",
+                options: [
+                    "Kolon asendens, kolon transversum, dan kolon desendens",
+                    "Duodenum, jejunum, dan ileum",
+                    "Kardiak, fundus, dan pilorus",
+                    "Sekum, apendiks, dan rektum"
+                ],
+                answer: 0,
+                explanation: "Kolon terdiri atas bagian naik (asendens), melintang (transversum), turun (desendens), dan sigmoid sebelum masuk ke rektum."
+            },
+            {
+                level: 4,
+                theme: "Level 4: Usus Besar & Integrasi Sistem Pencernaan",
+                q: "Jika seseorang mengonsumsi sepotong daging ayam panggang (kaya protein dan lemak), organ mana saja yang menghasilkan enzim untuk mencerna protein tersebut?",
+                options: [
+                    "Lambung dan Pankreas/Usus halus",
+                    "Mulut dan Kerongkongan",
+                    "Kerongkongan dan Usus besar",
+                    "Hati dan Kantung empedu"
+                ],
+                answer: 0,
+                explanation: "Protein mulai dicerna secara kimiawi di lambung oleh enzim pepsin, lalu dilanjutkan di usus halus oleh tripsin (dari pankreas) dan erepsin."
+            },
+            {
+                level: 4,
+                theme: "Level 4: Usus Besar & Integrasi Sistem Pencernaan",
+                q: "Mengapa makanan berserat tinggi (seperti sayur dan buah) sangat penting bagi kesehatan usus besar?",
+                options: [
+                    "Serat menahan air sehingga feses tetap lunak dan memperlancar gerak peristaltik",
+                    "Serat mengandung enzim penghancur bakteri jahat",
+                    "Serat diubah menjadi glukosa dengan sangat cepat",
+                    "Serat menghentikan penyerapan air di usus besar"
+                ],
+                answer: 0,
+                explanation: "Selulosa/serat tidak tercerna oleh enzim manusia, tetapi membantu menahan air pada feses dan merangsang otot usus besar agar BAB lancar."
+            },
+            {
+                level: 4,
+                theme: "Level 4: Usus Besar & Integrasi Sistem Pencernaan",
+                q: "Proses pengeluaran sisa-sisa pencernaan (feses) yang telah terkumpul di rektum melalui anus disebut...",
+                options: ["Defekasi", "Sekresi", "Absorpsi", "Ingesti"],
+                answer: 0,
+                explanation: "Ingesti adalah memasukkan makanan, absorpsi adalah penyerapan sari makanan, sekresi adalah pengeluaran getah/enzim, dan defekasi adalah pembuangan feses."
+            },
+            {
+                level: 4,
+                theme: "Level 4: Usus Besar & Integrasi Sistem Pencernaan",
+                q: "Perhatikan pasangan enzim dan fungsinya berikut:\n1. Ptialin : Amilum → Maltosa\n2. Pepsin : Lemak → Asam lemak\n3. Lipase : Protein → Pepton\n4. Tripsin : Pepton → Asam amino\nPasangan yang benar ditunjukkan oleh nomor...",
+                options: ["1 dan 4", "1 dan 2", "2 dan 3", "3 dan 4"],
+                answer: 0,
+                explanation: "Ptialin memecah amilum menjadi maltosa (1 benar), dan tripsin memecah pepton menjadi asam amino (4 benar)."
+            },
+            {
+                level: 4,
+                theme: "Level 4: Usus Besar & Integrasi Sistem Pencernaan",
+                q: "Zat warna empedu (bilirubin dan biliverdin) yang berasal dari perombakan sel darah merah tua di hati berperan dalam...",
+                options: [
+                    "Memberi warna kuning kecokelatan pada feses dan urine",
+                    "Memecah karbohidrat menjadi glukosa",
+                    "Mengaktifkan enzim pepsinogen",
+                    "Menyerap vitamin yang larut dalam air"
+                ],
+                answer: 0,
+                explanation: "Bilirubin diubah oleh bakteri di usus menjadi sterkobilin yang memberi warna khas pada feses, dan urobilin yang mewarnai urine."
+            },
+            {
+                level: 4,
+                theme: "Level 4: Usus Besar & Integrasi Sistem Pencernaan",
+                q: "Pencernaan makanan yang melibatkan perubahan ukuran makanan secara fisik tanpa mengubah struktur kimianya terjadi pada...",
+                options: [
+                    "Pengunyahan di mulut, gerak peristaltik kerongkongan, dan pengadukan di lambung",
+                    "Kerja enzim ptialin di mulut dan pepsin di lambung",
+                    "Emulsifikasi lemak oleh empedu dan kerja tripsin di duodenum",
+                    "Pembusukan sisa makanan oleh bakteri E. coli di kolon"
+                ],
+                answer: 0,
+                explanation: "Pencernaan mekanis mengubah bentuk/ukuran makanan secara fisik (mengunyah, meremas, mengaduk) tanpa bantuan enzim."
+            },
+            {
+                level: 4,
+                theme: "Level 4: Usus Besar & Integrasi Sistem Pencernaan",
+                q: " Apabila kantung empedu seseorang harus diangkat melalui operasi karena batu empedu, anjuran pola makan yang paling tepat bagi pasien tersebut adalah...",
+                options: [
+                    "Mengurangi makanan berlemak tinggi agar tidak membebani pencernaan lemak",
+                    "Menghindari semua makanan yang mengandung karbohidrat",
+                    "Mengonsumsi makanan super pedas setiap hari",
+                    "Menghentikan konsumsi air putih dan sayuran hijau"
+                ],
+                answer: 0,
+                explanation: "Tanpa kantung empedu, cairan empedu dari hati langsung menetes ke usus tanpa ditampung, sehingga konsumsi lemak berlebih akan sulit diemulsikan."
+            },
+
+            // ================= LEVEL 5: GANGGUAN, KESEHATAN & STUDI KASUS (10 SOAL @ 50 POIN) =================
+            {
+                level: 5,
+                theme: "Level 5: Analisis Gangguan & Kesehatan Pencernaan",
+                q: "Seorang siswa sering melewatkan sarapan dan gemar mengonsumsi makanan sangat pedas serta asam. Ia mengeluh perih dan mual di bagian ulu hati. Gangguan ini disebut...",
+                options: ["Gastritis (Maag)", "Konstipasi (Sembelit)", "Diare", "Apendisitis"],
+                answer: 0,
+                explanation: "Gastritis adalah peradangan pada dinding lambung akibat iritasi asam lambung (HCl) yang berlebih atau infeksi bakteri Helicobacter pylori."
+            },
+            {
+                level: 5,
+                theme: "Level 5: Analisis Gangguan & Kesehatan Pencernaan",
+                q: "Ketika seseorang mengalami infeksi bakteri pada usus besar sehingga penyerapan air terganggu dan feses menjadi sangat encer, gangguan ini disebut...",
+                options: ["Diare", "Sembelit (Konstipasi)", "Parotitis", "Xerostomia"],
+                answer: 0,
+                explanation: "Diare terjadi akibat iritasi selaput dinding usus besar (misalnya oleh bakteri) sehingga gerak peristaltik meningkat dan air gagal diserap."
+            },
+            {
+                level: 5,
+                theme: "Level 5: Analisis Gangguan & Kesehatan Pencernaan",
+                q: "Sebaliknya, jika penyerapan air di usus besar terjadi secara berlebihan akibat kurang serat dan kurang minum air putih, feses menjadi keras dan sulit dikeluarkan. Kondisi ini disebut...",
+                options: ["Konstipasi (Sembelit)", "Diare", "Tukak lambung", "Hepatitis"],
+                answer: 0,
+                explanation: "Konstipasi (sembelit) disebabkan oleh lambatnya pergerakan feses di usus besar sehingga terlalu banyak air yang diserap kembali."
+            },
+            {
+                level: 5,
+                theme: "Level 5: Analisis Gangguan & Kesehatan Pencernaan",
+                q: "Peradangan pada umbai cacing (usus buntu) akibat penyumbatan sisa makanan atau infeksi bakteri sehingga menimbulkan nyeri hebat di perut kanan bawah disebut...",
+                options: ["Apendisitis", "Peritonitis", "Gastritis", "Disentri"],
+                answer: 0,
+                explanation: "Apendisitis adalah radang pada apendiks (umbai cacing) yang jika dibiarkan dapat pecah dan membahayakan nyawa."
+            },
+            {
+                level: 5,
+                theme: "Level 5: Analisis Gangguan & Kesehatan Pencernaan",
+                q: "Pada uji laboratorium bahan makanan, suatu sampel makanan ditetesi larutan Biuret dan berubah warna menjadi ungu. Hal ini membuktikan bahwa makanan tersebut mengandung...",
+                options: ["Protein", "Amilum (Zat tepung)", "Glukosa", "Lemak"],
+                answer: 0,
+                explanation: "Reagen Biuret menguji kandungan protein (hasil positif: ungu); Lugol menguji amilum (biru tua/hitam); Benedict menguji glukosa (merah bata)."
+            },
+            {
+                level: 5,
+                theme: "Level 5: Analisis Gangguan & Kesehatan Pencernaan",
+                q: "Sampel ekstrak pisang ditetesi larutan Benedict lalu dipanaskan di atas pembakar spiritus hingga terbentuk endapan berwarna merah bata. Kesimpulan yang tepat adalah...",
+                options: [
+                    "Pisang mengandung gula pereduksi (glukosa)",
+                    "Pisang hanya mengandung lemak jenuh",
+                    "Pisang mengandung protein tinggi",
+                    "Pisang tidak mengandung zat gizi apa pun"
+                ],
+                answer: 0,
+                explanation: "Perubahan warna menjadi merah bata setelah dipanaskan dengan larutan Benedict menunjukkan adanya glukosa (gula sederhana)."
+            },
+            {
+                level: 5,
+                theme: "Level 5: Analisis Gangguan & Kesehatan Pencernaan",
+                q: "Gangguan pencernaan berupa rasa panas terbakar di dada (heartburn) akibat naiknya asam lambung menuju kerongkongan karena melemahnya katup sfingter esofagus disebut...",
+                options: ["GERD (Gastroesophageal Reflux Disease)", "Apendisitis", "Sembelit", "Xerostomia"],
+                answer: 0,
+                explanation: "GERD terjadi ketika asam lambung naik kembali (refluks) ke kerongkongan dan mengiritasi dinding esofagus."
+            },
+            {
+                level: 5,
+                theme: "Level 5: Analisis Gangguan & Kesehatan Pencernaan",
+                q: "Penyakit gondongan yang ditandai dengan pembengkakan pada kelenjar ludah di dekat telinga akibat infeksi virus disebut...",
+                options: ["Parotitis", "Gastritis", "Kolitis", "Hepatitis"],
+                answer: 0,
+                explanation: "Parotitis (gondongan) adalah peradangan pada kelenjar ludah parotis yang disebabkan oleh infeksi virus."
+            },
+            {
+                level: 5,
+                theme: "Level 5: Analisis Gangguan & Kesehatan Pencernaan",
+                q: "Penerapan nilai Cinta Diri dalam menjaga sistem pencernaan agar terhindar dari penyakit tifus (demam tifoid) yang disebabkan bakteri Salmonella typhi adalah...",
+                options: [
+                    "Mencuci tangan dengan sabun sebelum makan dan memilih jajanan yang bersih tertutup",
+                    "Mengonsumsi antibiotik setiap hari meskipun sedang sehat",
+                    "Menghindari semua jenis makanan yang dimasak",
+                    "Tidur segera setelah makan malam dalam porsi besar"
+                ],
+                answer: 0,
+                explanation: "Bakteri Salmonella typhi menular melalui makanan/minuman yang terkontaminasi. Kebersihan tangan dan sanitasi makanan adalah kunci pencegahannya."
+            },
+            {
+                level: 5,
+                theme: "Level 5: Analisis Gangguan & Kesehatan Pencernaan",
+                q: "Seseorang mengalami gangguan pada pankreas sehingga produksi enzim lipase menurun drastis. Dampak langsung yang paling mungkin terjadi pada pencernaannya adalah...",
+                options: [
+                    "Lemak tidak tercerna sempurna dan feses tampak berminyak (steatorea)",
+                    "Karbohidrat tidak dapat dicerna sama sekali di mulut",
+                    "Air tidak dapat diserap di usus besar",
+                    "Asam lambung berhenti diproduksi"
+                ],
+                answer: 0,
+                explanation: "Lipase pankreas adalah enzim utama pemecah lemak. Jika kurang, lemak tidak terurai menjadi asam lemak dan terbuang bersama feses."
+            }
+        ];
+
+        /**
+         * STATE GLOBAL PERMAINAN
+         */
+        const GAME_CONFIG = {
+            totalLevels: 5,
+            questionsPerLevel: 10,
+            maxLives: 5,
+            pointsPerLevel: [0, 10, 20, 30, 40, 50], // Index 1..5
+            penaltySeconds: 10,
+            miniGameSeconds: 60, // 1 Menit jeda antarlevel
+            totalGameSeconds: 40 * 60 // 40 Menit durasi total
+        };
+
+        let state = {
+            playerName: "",
+            playerClass: "",
+            currentLevel: 1,
+            questionIndexInLevel: 0,
+            levelQuestions: [],
+            lives: 5,
+            score: 0,
+            correctCount: 0,
+            globalTimeLeft: GAME_CONFIG.totalGameSeconds,
+            globalTimerInterval: null,
+            penaltyInterval: null,
+            isAnsweringAllowed: true,
+            leaderboard: [] // Menyimpan skor pemain dalam sesi ini
+        };
+
+        /**
+         * SISTEM AUDIO SEDERHANA DENGAN TONE.JS (TANPA FILE EKSTERNAL)
+         */
+        const SoundFX = {
+            init() {
+                if (typeof Tone !== 'undefined' && Tone.context.state !== 'running') {
+                    Tone.start().catch(() => {});
+                }
+            },
+            playCorrect() {
+                try {
+                    this.init();
+                    const synth = new Tone.Synth().toDestination();
+                    synth.triggerAttackRelease("C5", "16n", Tone.now());
+                    synth.triggerAttackRelease("E5", "16n", Tone.now() + 0.08);
+                    synth.triggerAttackRelease("G5", "8n", Tone.now() + 0.16);
+                } catch (e) {}
+            },
+            playWrong() {
+                try {
+                    this.init();
+                    const synth = new Tone.MembraneSynth().toDestination();
+                    synth.triggerAttackRelease("G2", "8n", Tone.now());
+                    synth.triggerAttackRelease("Eb2", "4n", Tone.now() + 0.15);
+                } catch (e) {}
+            },
+            playShoot() {
+                try {
+                    this.init();
+                    const synth = new Tone.Synth({
+                        oscillator: { type: "triangle" },
+                        envelope: { attack: 0.005, decay: 0.1, sustain: 0, release: 0.1 }
+                    }).toDestination();
+                    synth.triggerAttackRelease("A5", "32n");
+                } catch (e) {}
+            },
+            playHitBat() {
+                try {
+                    this.init();
+                    const synth = new Tone.Synth().toDestination();
+                    synth.triggerAttackRelease("D6", "16n");
+                } catch (e) {}
+            }
+        };
+
+        /**
+         * REFERENSI ELEMEN DOM
+         */
+        const screens = {
+            start: document.getElementById('screenStart'),
+            quiz: document.getElementById('screenQuiz'),
+            miniGame: document.getElementById('screenMiniGame'),
+            end: document.getElementById('screenEnd')
+        };
+
+        function showScreen(screenKey) {
+            Object.values(screens).forEach(el => el.classList.add('hidden'));
+            screens[screenKey].classList.remove('hidden');
+            
+            const header = document.getElementById('gameHeader');
+            if (screenKey === 'start') {
+                header.classList.add('hidden');
+            } else {
+                header.classList.remove('hidden');
+            }
+        }
+
+        function formatTime(totalSeconds) {
+            const mins = Math.floor(totalSeconds / 60);
+            const secs = totalSeconds % 60;
+            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function updateHeaderUI() {
+            document.getElementById('hdrLevel').textContent = state.currentLevel;
+            document.getElementById('hdrPlayerName').textContent = state.playerName;
+            document.getElementById('hdrScore').textContent = state.score;
+            document.getElementById('hdrGlobalTimer').textContent = formatTime(state.globalTimeLeft);
+
+            // Render Nyawa
+            const livesContainer = document.getElementById('hdrLives');
+            livesContainer.innerHTML = '';
+            for (let i = 0; i < GAME_CONFIG.maxLives; i++) {
+                const heart = document.createElement('span');
+                heart.className = i < state.lives ? 'text-base sm:text-lg transition-transform scale-100' : 'text-base sm:text-lg opacity-25 grayscale';
+                heart.textContent = '❤️';
+                livesContainer.appendChild(heart);
+            }
+        }
+
+        /**
+         * MEMULAI PERMAINAN
+         */
+        document.getElementById('btnStartGame').addEventListener('click', () => {
+            const nameInput = document.getElementById('inputStudentName').value.trim();
+            const classInput = document.getElementById('inputStudentClass').value.trim() || '-';
+            const errorMsg = document.getElementById('startErrorMsg');
+
+            if (!nameInput) {
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+            errorMsg.classList.add('hidden');
+
+            // Update Kredit Guru jika diisi
+            const teacherName = document.getElementById('inputTeacherName').value.trim();
+            const schoolName = document.getElementById('inputSchoolName').value.trim();
+            const yearVal = document.getElementById('inputYear').value.trim();
+            if (teacherName || schoolName) {
+                document.getElementById('footerTeacherCredit').textContent = 
+                    `Guru: ${teacherName || '-'} | ${schoolName || '-'} (${yearVal || '2026'})`;
+            }
+
+            // Reset State Permainan
+            state.playerName = nameInput;
+            state.playerClass = classInput;
+            state.currentLevel = 1;
+            state.questionIndexInLevel = 0;
+            state.lives = GAME_CONFIG.maxLives;
+            state.score = 0;
+            state.correctCount = 0;
+            state.globalTimeLeft = GAME_CONFIG.totalGameSeconds;
+            state.isAnsweringAllowed = true;
+
+            SoundFX.init();
+            startGlobalTimer();
+            prepareLevel(1);
+        });
+
+        function startGlobalTimer() {
+            clearInterval(state.globalTimerInterval);
+            state.globalTimerInterval = setInterval(() => {
+                state.globalTimeLeft--;
+                document.getElementById('hdrGlobalTimer').textContent = formatTime(state.globalTimeLeft);
+
+                if (state.globalTimeLeft <= 0) {
+                    clearInterval(state.globalTimerInterval);
+                    endGame("Waktu 40 Menit Telah Habis!");
+                }
+            }, 1000);
+        }
+
+        /**
+         * PERSIAPAN LEVEL & PENGACAKAN URUTAN SOAL DALAM LEVEL
+         */
+        function prepareLevel(levelNum) {
+            state.currentLevel = levelNum;
+            state.questionIndexInLevel = 0;
+
+            // Ambil 10 soal untuk level ini dan acak urutannya
+            const rawQuestions = QUESTION_BANK.filter(q => q.level === levelNum);
+            state.levelQuestions = shuffleArray([...rawQuestions]);
+
+            updateHeaderUI();
+            showScreen('quiz');
+            renderCurrentQuestion();
+        }
+
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        /**
+         * MENAMPILKAN SOAL & PILIHAN JAWABAN TERACAK
+         */
+        function renderCurrentQuestion() {
+            state.isAnsweringAllowed = true;
+            const currentQ = state.levelQuestions[state.questionIndexInLevel];
+            const pointVal = GAME_CONFIG.pointsPerLevel[state.currentLevel];
+
+            document.getElementById('quizLevelTheme').textContent = currentQ.theme;
+            document.getElementById('quizQuestionNum').textContent = state.questionIndexInLevel + 1;
+            document.getElementById('quizPointValue').textContent = pointVal;
+            document.getElementById('quizQuestionText').textContent = currentQ.q;
+
+            // Update Progress Bar
+            const progressPercent = ((state.questionIndexInLevel + 1) / GAME_CONFIG.questionsPerLevel) * 100;
+            document.getElementById('quizProgressBar').style.width = `${progressPercent}%`;
+
+            // Sembunyikan kotak feedback & overlay penalti
+            document.getElementById('quizFeedbackBox').classList.add('hidden');
+            document.getElementById('penaltyOverlay').classList.add('hidden');
+
+            // Siapkan opsi dengan indeks asli agar kunci jawaban tetap akurat saat diacak
+            const mappedOptions = currentQ.options.map((text, idx) => ({
+                text,
+                isCorrect: idx === currentQ.answer
+            }));
+            const shuffledOptions = shuffleArray(mappedOptions);
+
+            const optionsContainer = document.getElementById('quizOptionsContainer');
+            optionsContainer.innerHTML = '';
+            const letters = ['A', 'B', 'C', 'D'];
+
+            shuffledOptions.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-4 rounded-2xl bg-slate-900/90 hover:bg-slate-700/90 border border-slate-700 hover:border-emerald-400 transition-all flex items-center gap-3 cursor-pointer group";
+                btn.innerHTML = `
+                    <span class="w-8 h-8 rounded-xl bg-slate-800 group-hover:bg-emerald-500 group-hover:text-slate-950 font-game font-bold flex items-center justify-center text-sm text-emerald-400 shrink-0 transition-colors">
+                        ${letters[i]}
+                    </span>
+                    <span class="text-sm sm:text-base text-slate-100 font-medium">${opt.text}</span>
+                `;
+                btn.addEventListener('click', () => handleAnswerSelection(btn, opt.isCorrect, currentQ));
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        /**
+         * PENANGANAN JAWABAN BENAR / SALAH
+         */
+        function handleAnswerSelection(selectedBtn, isCorrect, questionObj) {
+            if (!state.isAnsweringAllowed) return;
+            state.isAnsweringAllowed = false;
+
+            const allBtns = document.querySelectorAll('#quizOptionsContainer button');
+            allBtns.forEach(b => b.disabled = true);
+
+            if (isCorrect) {
+                // JAWABAN BENAR
+                SoundFX.playCorrect();
+                selectedBtn.classList.remove('bg-slate-900/90', 'border-slate-700');
+                selectedBtn.classList.add('bg-emerald-950/90', 'border-emerald-400', 'ring-2', 'ring-emerald-400/50');
+
+                const earnedPoints = GAME_CONFIG.pointsPerLevel[state.currentLevel];
+                state.score += earnedPoints;
+                state.correctCount++;
+                updateHeaderUI();
+
+                // Tampilkan Feedback Positif
+                const fbBox = document.getElementById('quizFeedbackBox');
+                fbBox.className = "rounded-2xl p-4 mb-2 border bg-emerald-950/60 border-emerald-500/50";
+                document.getElementById('feedbackIcon').textContent = "✅";
+                document.getElementById('feedbackTitle').textContent = `Tepat Sekali! (+${earnedPoints} Poin)`;
+                document.getElementById('feedbackTitle').className = "font-bold text-base mb-1 text-emerald-300";
+                document.getElementById('feedbackExplanation').textContent = questionObj.explanation;
+                fbBox.classList.remove('hidden');
+
+            } else {
+                // JAWABAN SALAH -> KURANGI NYAWA & JEDA 10 DETIK
+                SoundFX.playWrong();
+                selectedBtn.classList.remove('bg-slate-900/90', 'border-slate-700');
+                selectedBtn.classList.add('bg-rose-950/90', 'border-rose-500', 'animate-shake');
+
+                state.lives--;
+                updateHeaderUI();
+
+                // Cek apakah nyawa habis
+                if (state.lives <= 0) {
+                    setTimeout(() => {
+                        endGame("Nyawa Kamu Telah Habis!");
+                    }, 900);
+                    return;
+                }
+
+                // Aktifkan Jeda 10 Detik
+                triggerPenaltyPause(questionObj.explanation);
+            }
+        }
+
+        function triggerPenaltyPause(explanation) {
+            const overlay = document.getElementById('penaltyOverlay');
+            const countdownEl = document.getElementById('penaltyCountdown');
+            document.getElementById('penaltyExplanationText').textContent = explanation;
+
+            let timeLeft = GAME_CONFIG.penaltySeconds;
+            countdownEl.textContent = timeLeft;
+            overlay.classList.remove('hidden');
+
+            clearInterval(state.penaltyInterval);
+            state.penaltyInterval = setInterval(() => {
+                timeLeft--;
+                countdownEl.textContent = timeLeft;
+
+                if (timeLeft <= 0) {
+                    clearInterval(state.penaltyInterval);
+                    overlay.classList.add('hidden');
+                    advanceToNextStep();
+                }
+            }, 1000);
+        }
+
+        document.getElementById('btnNextQuestion').addEventListener('click', () => {
+            advanceToNextStep();
+        });
+
+        function advanceToNextStep() {
+            state.questionIndexInLevel++;
+
+            if (state.questionIndexInLevel < GAME_CONFIG.questionsPerLevel) {
+                // Masih ada soal di level saat ini
+                renderCurrentQuestion();
+            } else {
+                // 10 soal di level ini selesai!
+                if (state.currentLevel < GAME_CONFIG.totalLevels) {
+                    // Maju ke jeda Mini-Game Memanah Kelelawar 1 Menit sebelum level berikutnya
+                    startBatMiniGame(state.currentLevel + 1);
+                } else {
+                    // Semua 5 level selesai!
+                    endGame("Selamat! Kamu Menaklukkan Semua 5 Level!");
+                }
+            }
+        }
+
+        /**
+         * MINI-GAME JEDA ANTARLEVEL: MEMANAH KELELAWAR (1 MENIT / 60 DETIK)
+         */
+        let miniGameData = {
+            active: false,
+            timerInterval: null,
+            animFrameId: null,
+            timeLeft: 60,
+            bonusScore: 0,
+            nextLevel: 2,
+            bats: [],
+            arrows: [],
+            bowX: 0,
+            bowY: 0,
+            bowAngle: -Math.PI / 2
+        };
+
+        function startBatMiniGame(upcomingLevel) {
+            showScreen('miniGame');
+            const canvas = document.getElementById('batCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // Atur ukuran canvas responsif
+            function resizeCanvas() {
+                const rect = canvas.parentElement.getBoundingClientRect();
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+                miniGameData.bowX = canvas.width / 2;
+                miniGameData.bowY = canvas.height - 35;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            // Reset state mini-game
+            miniGameData.active = true;
+            miniGameData.timeLeft = GAME_CONFIG.miniGameSeconds;
+            miniGameData.bonusScore = 0;
+            miniGameData.nextLevel = upcomingLevel;
+            miniGameData.bats = [];
+            miniGameData.arrows = [];
+
+            document.getElementById('miniGameScore').textContent = "0";
+            document.getElementById('miniGameTimer').textContent = formatTime(miniGameData.timeLeft);
+            document.getElementById('miniGameEndOverlay').classList.add('hidden');
+            document.getElementById('nextLevelNumDisplay').textContent = upcomingLevel;
+
+            // Spawn awal kelelawar
+            for (let i = 0; i < 5; i++) {
+                spawnBat(canvas.width, canvas.height);
+            }
+
+            // Kontrol bidikan & tembakan (Mouse & Sentuhan)
+            function updateAim(clientX, clientY) {
+                const rect = canvas.getBoundingClientRect();
+                const x = clientX - rect.left;
+                const y = clientY - rect.top;
+                miniGameData.bowAngle = Math.atan2(y - miniGameData.bowY, x - miniGameData.bowX);
+            }
+
+            function shootArrow(clientX, clientY) {
+                if (!miniGameData.active) return;
+                updateAim(clientX, clientY);
+                SoundFX.playShoot();
+
+                const speed = 11;
+                miniGameData.arrows.push({
+                    x: miniGameData.bowX,
+                    y: miniGameData.bowY,
+                    vx: Math.cos(miniGameData.bowAngle) * speed,
+                    vy: Math.sin(miniGameData.bowAngle) * speed,
+                    angle: miniGameData.bowAngle
+                });
+            }
+
+            canvas.onmousemove = (e) => updateAim(e.clientX, e.clientY);
+            canvas.onclick = (e) => shootArrow(e.clientX, e.clientY);
+            canvas.ontouchstart = (e) => {
+                e.preventDefault();
+                if (e.touches.length > 0) {
+                    shootArrow(e.touches[0].clientX, e.touches[0].clientY);
+                }
+            };
+
+            // Timer 60 Detik Mini-Game
+            clearInterval(miniGameData.timerInterval);
+            miniGameData.timerInterval = setInterval(() => {
+                miniGameData.timeLeft--;
+                document.getElementById('miniGameTimer').textContent = formatTime(miniGameData.timeLeft);
+
+                // Tambah kelelawar baru secara berkala
+                if (miniGameData.bats.length < 7) {
+                    spawnBat(canvas.width, canvas.height);
+                }
+
+                if (miniGameData.timeLeft <= 0) {
+                    finishBatMiniGame();
+                }
+            }, 1000);
+
+            // Loop Animasi Canvas
+            function gameLoop() {
+                if (!miniGameData.active) return;
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Gambar bintang latar belakang sederhana
+                ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
+                for (let s = 0; s < 20; s++) {
+                    ctx.beginPath();
+                    ctx.arc((s * 97) % canvas.width, (s * 53) % (canvas.height - 80), 1.5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Update & Gambar Kelelawar
+                for (let i = miniGameData.bats.length - 1; i >= 0; i--) {
+                    const b = miniGameData.bats[i];
+                    b.x += b.vx;
+                    b.y += Math.sin(b.x * 0.03) * 1.2;
+                    b.wingPhase += 0.2;
+
+                    // Pantul di tepi layar
+                    if (b.x < 30 || b.x > canvas.width - 30) {
+                        b.vx *= -1;
+                    }
+
+                    drawBat(ctx, b);
+                }
+
+                // Update & Gambar Anak Panah + Deteksi Tumbukan
+                for (let i = miniGameData.arrows.length - 1; i >= 0; i--) {
+                    const a = miniGameData.arrows[i];
+                    a.x += a.vx;
+                    a.y += a.vy;
+
+                    drawArrow(ctx, a);
+
+                    // Cek tabrakan panah dengan kelelawar
+                    let hit = false;
+                    for (let j = miniGameData.bats.length - 1; j >= 0; j--) {
+                        const b = miniGameData.bats[j];
+                        const dist = Math.hypot(a.x - b.x, a.y - b.y);
+                        if (dist < b.radius + 10) {
+                            // Kena!
+                            hit = true;
+                            SoundFX.playHitBat();
+                            miniGameData.bats.splice(j, 1);
+                            miniGameData.bonusScore += 5;
+                            state.score += 5;
+                            document.getElementById('miniGameScore').textContent = miniGameData.bonusScore;
+                            updateHeaderUI();
+                            spawnBat(canvas.width, canvas.height);
+                            break;
+                        }
+                    }
+
+                    // Hapus panah jika kena atau keluar layar
+                    if (hit || a.x < 0 || a.x > canvas.width || a.y < 0 || a.y > canvas.height) {
+                        miniGameData.arrows.splice(i, 1);
+                    }
+                }
+
+                // Gambar Busur Panah di Bawah Tengah
+                drawBow(ctx, miniGameData.bowX, miniGameData.bowY, miniGameData.bowAngle);
+
+                miniGameData.animFrameId = requestAnimationFrame(gameLoop);
+            }
+
+            cancelAnimationFrame(miniGameData.animFrameId);
+            gameLoop();
+        }
+
+        function spawnBat(cw, ch) {
+            const fromLeft = Math.random() > 0.5;
+            miniGameData.bats.push({
+                x: fromLeft ? 40 : cw - 40,
+                y: 45 + Math.random() * (ch * 0.55),
+                vx: (fromLeft ? 1 : -1) * (1.8 + Math.random() * 2.2),
+                radius: 22,
+                wingPhase: Math.random() * Math.PI
+            });
+        }
+
+        function drawBat(ctx, bat) {
+            ctx.save();
+            ctx.translate(bat.x, bat.y);
+            const wingFlap = Math.sin(bat.wingPhase) * 10;
+
+            // Sayap Kiri & Kanan
+            ctx.fillStyle = "#818cf8";
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.quadraticCurveTo(-22, -18 + wingFlap, -34, 4 + wingFlap);
+            ctx.quadraticCurveTo(-16, 8, 0, 5);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.quadraticCurveTo(22, -18 + wingFlap, 34, 4 + wingFlap);
+            ctx.quadraticCurveTo(16, 8, 0, 5);
+            ctx.fill();
+
+            // Badan Kelelawar
+            ctx.fillStyle = "#312e81";
+            ctx.beginPath();
+            ctx.arc(0, 0, 11, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Mata Menyala
+            ctx.fillStyle = "#fbbf24";
+            ctx.beginPath();
+            ctx.arc(-4, -2, 2.2, 0, Math.PI * 2);
+            ctx.arc(4, -2, 2.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function drawArrow(ctx, arrow) {
+            ctx.save();
+            ctx.translate(arrow.x, arrow.y);
+            ctx.rotate(arrow.angle);
+
+            // Batang Panah
+            ctx.strokeStyle = "#fde047";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(-16, 0);
+            ctx.lineTo(12, 0);
+            ctx.stroke();
+
+            // Mata Panah
+            ctx.fillStyle = "#34d399";
+            ctx.beginPath();
+            ctx.moveTo(18, 0);
+            ctx.lineTo(8, -5);
+            ctx.lineTo(8, 5);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function drawBow(ctx, x, y, angle) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+
+            // Lengkungan Busur
+            ctx.strokeStyle = "#f59e0b";
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.arc(0, 0, 26, -Math.PI / 2.2, Math.PI / 2.2);
+            ctx.stroke();
+
+            // Tali Busur
+            ctx.strokeStyle = "#e2e8f0";
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(4, -24);
+            ctx.lineTo(-6, 0);
+            ctx.lineTo(4, 24);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function finishBatMiniGame() {
+            miniGameData.active = false;
+            clearInterval(miniGameData.timerInterval);
+            cancelAnimationFrame(miniGameData.animFrameId);
+
+            document.getElementById('miniGameFinalBonus').textContent = miniGameData.bonusScore;
+            document.getElementById('miniGameEndOverlay').classList.remove('hidden');
+        }
+
+        document.getElementById('btnProceedNextLevel').addEventListener('click', () => {
+            prepareLevel(miniGameData.nextLevel);
+        });
+
+        /**
+         * LAYAR AKHIR & LEADERBOARD SESI
+         */
+        function endGame(reasonTitle) {
+            clearInterval(state.globalTimerInterval);
+            clearInterval(state.penaltyInterval);
+            clearInterval(miniGameData.timerInterval);
+            miniGameData.active = false;
+
+            document.getElementById('endTitle').textContent = reasonTitle;
+            document.getElementById('endSubtitle').textContent = 
+                `Pemain: ${state.playerName} (${state.playerClass}) • Waktu tersisa: ${formatTime(state.globalTimeLeft)}`;
+
+            document.getElementById('endTotalScore').textContent = state.score;
+            document.getElementById('endLevelReached').textContent = `${state.currentLevel}/5`;
+            document.getElementById('endCorrectCount').textContent = `${state.correctCount}/50`;
+            document.getElementById('endLivesLeft').textContent = Math.max(0, state.lives);
+
+            document.getElementById('endBadgeIcon').textContent = state.lives > 0 ? "🏆" : "🎯";
+
+            // Simpan ke Leaderboard sesi
+            state.leaderboard.push({
+                name: state.playerName,
+                className: state.playerClass,
+                level: state.currentLevel,
+                score: state.score
+            });
+            // Urutkan dari poin tertinggi
+            state.leaderboard.sort((a, b) => b.score - a.score);
+
+            const tbody = document.getElementById('leaderboardBody');
+            tbody.innerHTML = '';
+            state.leaderboard.forEach((entry, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = idx === 0 ? "bg-amber-500/10 text-amber-200 font-semibold" : "text-slate-300";
+                tr.innerHTML = `
+                    <td class="py-2 px-2">${idx === 0 ? '🥇 #1' : `#${idx + 1}`}</td>
+                    <td class="py-2 px-2">${entry.name}</td>
+                    <td class="py-2 px-2">${entry.className}</td>
+                    <td class="py-2 px-2">Lv. ${entry.level}</td>
+                    <td class="py-2 px-2 text-right font-game font-bold text-amber-400">${entry.score}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            showScreen('end');
+        }
+
+        document.getElementById('btnPlayAgain').addEventListener('click', () => {
+            document.getElementById('inputStudentName').value = '';
+            showScreen('start');
+        });
+    </script>
+</body>
+</html>
