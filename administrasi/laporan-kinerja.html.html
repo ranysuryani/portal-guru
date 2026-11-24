@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Laporan Kinerja Harian Guru</title>
+    <style>
+        :root {
+            --primary: #1e40af;
+            --primary-light: #3b82f6;
+            --bg: #f1f5f9;
+            --card: #ffffff;
+            --text: #0f172a;
+            --muted: #64748b;
+            --border: #cbd5e1;
+            --danger: #dc2626;
+            --success: #15803d;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 1.5rem;
+            line-height: 1.5;
+        }
+        .container {
+            max-width: 1050px;
+            margin: 0 auto;
+        }
+        .header-card {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            padding: 1.5rem 2rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+        .header-card h1 { margin: 0; font-size: 1.5rem; }
+        .header-card p { margin: 0.25rem 0 0; opacity: 0.9; font-size: 0.95rem; }
+        .back-link {
+            color: white;
+            text-decoration: none;
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .back-link:hover { background: rgba(255,255,255,0.3); }
+
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            margin-bottom: 1.5rem;
+        }
+        .card h2 {
+            margin-top: 0;
+            font-size: 1.15rem;
+            color: var(--primary);
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 0.6rem;
+            margin-bottom: 1rem;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group.full { grid-column: 1 / -1; }
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.35rem;
+            color: #334155;
+        }
+        input, select, textarea {
+            padding: 0.6rem 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            background: #fff;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+        }
+        textarea { min-height: 75px; resize: vertical; }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 1.25rem;
+        }
+        button {
+            border: none;
+            padding: 0.65rem 1.15rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: opacity 0.15s, transform 0.1s;
+        }
+        button:hover { opacity: 0.92; }
+        button:active { transform: scale(0.99); }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-outline {
+            background: white;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        .btn-danger {
+            background: #fee2e2;
+            color: var(--danger);
+            padding: 0.35rem 0.65rem;
+            font-size: 0.8rem;
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .table-wrap { overflow-x: auto; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        th, td {
+            border: 1px solid #cbd5e1;
+            padding: 0.65rem 0.75rem;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background: #eff6ff;
+            color: var(--primary);
+            font-weight: 700;
+        }
+        tbody tr:nth-child(even) { background: #f8fafc; }
+
+        .ttd-section {
+            display: none;
+            margin-top: 2.5rem;
+            justify-content: space-between;
+            gap: 2rem;
+            font-size: 0.9rem;
+        }
+        .ttd-box { width: 45%; text-align: center; }
+        .ttd-space { height: 65px; }
+
+        @media print {
+            body { background: white; padding: 0; font-size: 11pt; }
+            .back-link, .form-card, .toolbar .no-print, .col-aksi { display: none !important; }
+            .header-card { background: white; color: black; padding: 0 0 0.75rem 0; border-bottom: 2px solid #000; border-radius: 0; }
+            .card { box-shadow: none; padding: 0.5rem 0; margin-bottom: 0.5rem; }
+            .card h2 { color: black; border-bottom: 1px solid #000; }
+            th { background: #e2e8f0 !important; color: black !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .ttd-section { display: flex; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header-card">
+        <div>
+            <h1>📋 Laporan Kinerja Harian Guru</h1>
+            <p>Pencatatan agenda mengajar, tugas pokok, dan capaian kinerja harian</p>
+        </div>
+        <a href="../index.html" class="back-link">← Kembali ke Portal</a>
+    </div>
+
+    <!-- Form Identitas & Input Kinerja -->
+    <div class="card form-card">
+        <h2>1. Identitas & Input Kegiatan Harian</h2>
+        <form id="kinerjaForm">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="namaGuru">Nama Guru</label>
+                    <input type="text" id="namaGuru" placeholder="Contoh: Siti Aminah, S.Pd." required>
+                </div>
+                <div class="form-group">
+                    <label for="nipGuru">NIP / NUPTK (Opsional)</label>
+                    <input type="text" id="nipGuru" placeholder="Masukkan NIP / NUPTK">
+                </div>
+                <div class="form-group">
+                    <label for="unitKerja">Satuan Pendidikan / Sekolah</label>
+                    <input type="text" id="unitKerja" placeholder="Contoh: SMP Negeri 1 / MTs...">
+                </div>
+                <div class="form-group">
+                    <label for="tanggal">Tanggal Kegiatan</label>
+                    <input type="date" id="tanggal" required>
+                </div>
+                <div class="form-group">
+                    <label for="kategori">Jenis Kegiatan</label>
+                    <select id="kategori">
+                        <option value="Pembelajaran / Mengajar">Pembelajaran / Mengajar</option>
+                        <option value="Perangkat & Asesmen">Perangkat & Asesmen</option>
+                        <option value="Bimbingan / Wali Kelas">Bimbingan / Wali Kelas</option>
+                        <option value="Tugas Tambahan / Kepanitiaan">Tugas Tambahan / Kepanitiaan</option>
+                        <option value="Pengembangan Diri">Pengembangan Diri</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="kelasMapel">Kelas / Mapel / Sasaran</label>
+                    <input type="text" id="kelasMapel" placeholder="Contoh: Kelas VIII.A - IPA">
+                </div>
+                <div class="form-group full">
+                    <label for="uraian">Uraian Kegiatan Kinerja Harian</label>
+                    <textarea id="uraian" placeholder="Tuliskan kegiatan yang dilaksanakan hari ini secara ringkas dan jelas..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="hasil">Output / Hasil Capaian</label>
+                    <input type="text" id="hasil" placeholder="Contoh: Jurnal mengajar terisi, LKPD selesai dikerjakan">
+                </div>
+                <div class="form-group">
+                    <label for="keterangan">Keterangan / Status</label>
+                    <input type="text" id="keterangan" value="Terlaksana 100%">
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="btn-primary">+ Simpan Laporan Hari Ini</button>
+                <button type="button" id="btnResetForm" class="btn-outline">Bersihkan Form</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabel Rekap Laporan -->
+    <div class="card">
+        <h2>2. Rekap Laporan Kinerja Harian</h2>
+        <div class="toolbar">
+            <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                <label for="filterBulan" style="margin:0;">Filter Bulan:</label>
+                <input type="month" id="filterBulan">
+                <button type="button" id="btnSemuaBulan" class="btn-outline no-print">Tampilkan Semua</button>
+            </div>
+            <div class="actions no-print" style="margin-top:0;">
+                <button type="button" onclick="window.print()" class="btn-success">🖨️ Cetak / Simpan PDF</button>
+                <button type="button" id="btnExport" class="btn-outline">⬇️ Backup Data (.json)</button>
+                <button type="button" id="btnImportTrigger" class="btn-outline">⬆️ Pulihkan Data</button>
+                <input type="file" id="importFile" accept=".json" style="display:none;">
+                <button type="button" id="btnHapusSemua" class="btn-danger">Hapus Semua</button>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:45px;">No</th>
+                        <th style="width:115px;">Tanggal</th>
+                        <th style="width:155px;">Jenis / Sasaran</th>
+                        <th>Uraian Kegiatan</th>
+                        <th style="width:180px;">Output / Hasil</th>
+                        <th style="width:120px;">Keterangan</th>
+                        <th class="col-aksi" style="width:75px;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelBody">
+                    <tr>
+                        <td colspan="7" style="text-align:center; color:#64748b;">Belum ada data laporan kinerja. Silakan isi form di atas.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="ttd-section">
+            <div class="ttd-box">
+                <p>Mengetahui,<br>Kepala Madrasah / Sekolah</p>
+                <div class="ttd-space"></div>
+                <p><strong id="ttdKepsek">(........................................)</strong><br>NIP. .................................</p>
+            </div>
+            <div class="ttd-box">
+                <p>Guru Mata Pelajaran</p>
+                <div class="ttd-space"></div>
+                <p><strong id="ttdGuru">........................................</strong><br><span id="ttdNip">NIP. .................................</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const STORAGE_KEY = 'lkh_guru_data_v1';
+    const PROFIL_KEY = 'lkh_guru_profil_v1';
+
+    const form = document.getElementById('kinerjaForm');
+    const tabelBody = document.getElementById('tabelBody');
+    const filterBulan = document.getElementById('filterBulan');
+    const tanggalInput = document.getElementById('tanggal');
+
+    tanggalInput.valueAsDate = new Date();
+
+    function ambilData() {
+        try {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        } catch {
+            return [];
+        }
+    }
+
+    function simpanData(data) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function muatProfil() {
+        try {
+            const profil = JSON.parse(localStorage.getItem(PROFIL_KEY));
+            if (profil) {
+                if (profil.namaGuru) document.getElementById('namaGuru').value = profil.namaGuru;
+                if (profil.nipGuru) document.getElementById('nipGuru').value = profil.nipGuru;
+                if (profil.unitKerja) document.getElementById('unitKerja').value = profil.unitKerja;
+            }
+        } catch {}
+    }
+
+    function simpanProfil() {
+        const profil = {
+            namaGuru: document.getElementById('namaGuru').value.trim(),
+            nipGuru: document.getElementById('nipGuru').value.trim(),
+            unitKerja: document.getElementById('unitKerja').value.trim()
+        };
+        localStorage.setItem(PROFIL_KEY, JSON.stringify(profil));
+        perbaruiTtd(profil);
+    }
+
+    function perbaruiTtd(profil = {}) {
+        const nama = profil.namaGuru || document.getElementById('namaGuru').value.trim();
+        const nip = profil.nipGuru || document.getElementById('nipGuru').value.trim();
+        document.getElementById('ttdGuru').textContent = nama || '........................................';
+        document.getElementById('ttdNip').textContent = nip ? `NIP. ${nip}` : 'NIP. .................................';
+    }
+
+    function formatTanggalIndo(tglStr) {
+        if (!tglStr) return '-';
+        const [y, m, d] = tglStr.split('-');
+        const bulan = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
+        return `${parseInt(d, 10)} ${bulan[parseInt(m, 10) - 1] || m} ${y}`;
+    }
+
+    function renderTabel() {
+        const semua = ambilData().sort((a, b) => a.tanggal.localeCompare(b.tanggal));
+        const bulanDipilih = filterBulan.value;
+        const dataTampil = bulanDipilih
+            ? semua.filter(item => item.tanggal.startsWith(bulanDipilih))
+            : semua;
+
+        perbaruiTtd();
+
+        if (dataTampil.length === 0) {
+            tabelBody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#64748b;">Tidak ada data laporan untuk periode ini.</td></tr>`;
+            return;
+        }
+
+        tabelBody.innerHTML = dataTampil.map((item, idx) => `
+            <tr>
+                <td>${idx + 1}</td>
+                <td>${formatTanggalIndo(item.tanggal)}</td>
+                <td><strong>${escapeHtml(item.kategori)}</strong><br><small style="color:#475569;">${escapeHtml(item.kelasMapel || '-')}</small></td>
+                <td>${escapeHtml(item.uraian)}</td>
+                <td>${escapeHtml(item.hasil || '-')}</td>
+                <td>${escapeHtml(item.keterangan || '-')}</td>
+                <td class="col-aksi"><button type="button" class="btn-danger" onclick="hapusItem('${item.id}')">Hapus</button></td>
+            </tr>
+        `).join('');
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    window.hapusItem = function(id) {
+        if (!confirm('Hapus catatan kinerja ini?')) return;
+        const baru = ambilData().filter(item => item.id !== id);
+        simpanData(baru);
+        renderTabel();
+    };
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        simpanProfil();
+
+        const itemBaru = {
+            id: Date.now().toString(),
+            tanggal: document.getElementById('tanggal').value,
+            kategori: document.getElementById('kategori').value,
+            kelasMapel: document.getElementById('kelasMapel').value.trim(),
+            uraian: document.getElementById('uraian').value.trim(),
+            hasil: document.getElementById('hasil').value.trim(),
+            keterangan: document.getElementById('keterangan').value.trim()
+        };
+
+        const data = ambilData();
+        data.push(itemBaru);
+        simpanData(data);
+
+        document.getElementById('uraian').value = '';
+        document.getElementById('hasil').value = '';
+        renderTabel();
+    });
+
+    document.getElementById('btnResetForm').addEventListener('click', () => {
+        document.getElementById('uraian').value = '';
+        document.getElementById('hasil').value = '';
+        document.getElementById('kelasMapel').value = '';
+    });
+
+    filterBulan.addEventListener('change', renderTabel);
+
+    document.getElementById('btnSemuaBulan').addEventListener('click', () => {
+        filterBulan.value = '';
+        renderTabel();
+    });
+
+    document.getElementById('btnHapusSemua').addEventListener('click', () => {
+        if (!confirm('Yakin ingin menghapus seluruh data laporan kinerja?')) return;
+        localStorage.removeItem(STORAGE_KEY);
+        renderTabel();
+    });
+
+    document.getElementById('btnExport').addEventListener('click', () => {
+        const payload = {
+            profil: JSON.parse(localStorage.getItem(PROFIL_KEY) || '{}'),
+            laporan: ambilData()
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `backup-kinerja-guru-${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+
+    const importFile = document.getElementById('importFile');
+    document.getElementById('btnImportTrigger').addEventListener('click', () => importFile.click());
+    importFile.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            try {
+                const parsed = JSON.parse(ev.target.result);
+                if (Array.isArray(parsed.laporan)) {
+                    simpanData(parsed.laporan);
+                }
+                if (parsed.profil) {
+                    localStorage.setItem(PROFIL_KEY, JSON.stringify(parsed.profil));
+                    muatProfil();
+                }
+                renderTabel();
+                alert('Data berhasil dipulihkan!');
+            } catch {
+                alert('File backup tidak valid.');
+            }
+        };
+        reader.readAsText(file);
+        importFile.value = '';
+    });
+
+    ['namaGuru', 'nipGuru'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => perbaruiTtd());
+    });
+
+    muatProfil();
+    renderTabel();
+</script>
+</body>
+</html>
